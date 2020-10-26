@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict';
 
 var fs = require('fs')
   , path = require('path')
@@ -8,13 +9,15 @@ var fs = require('fs')
   , utils = require('../lib/utils')
   , program = require('commander')
   , prompt = require('prompt')
-  , request = require('request')
-  , unzip = require('unzip');
+  , request = require('request');
+  //, unzip = require('unzip');
 
 program.version(pkg.version);
 
-auth_token = null;
-send_event = function(id, data) {
+console.log(program);
+
+var auth_token = null;
+var send_event = function(id, data) {
   if (auth_token) {
     data.auth_token = auth_token;
   }
@@ -30,6 +33,9 @@ send_event = function(id, data) {
         console.error(err);
       }
   });
+
+
+
 };
 
 var generators = (function(types) {
@@ -44,10 +50,18 @@ var generators = (function(types) {
   return rtn;
 })(['widget', 'dashboard', 'job']);
 
+program.command('help')
+  .action(function(){
+    console.log("HEEELP");
+  });
+console.log("-----------------------------------------");
+console.log(program);
+
 program.command('new <project_name>')
   .description('Sets up ALL THE THINGS needed for your dashboard project.')
   .option('-f, --force', 'force on non-empty directory')
   .action(function(project_name, options) {
+    console.log("ok new");
     project_name = Thor.Util.dash_case(project_name);
     utils.emptyDirectory(project_name, function(empty) {
       if (empty || options.force) {
@@ -72,6 +86,7 @@ program.command('new <project_name>')
     });
   });
 
+
 program.command('generate <type> <name>')
   .description('Creates a new widget, dashboard, or job.')
   .action(function(type, name) {
@@ -82,7 +97,7 @@ program.command('generate <type> <name>')
       console.error('Invalid generator. Either use widget, dashboard, or job');
     }
   });
-
+/*
 program.command('install <id>')
   .description('Installs a new widget from a gist or a zipball.')
   .option('-p, --proxy <proxy>', 'Use proxy')
@@ -146,7 +161,7 @@ program.command('install <id>')
               var outFile = filename;
               if (filename.match(/(\w*)\.job\.(js|coffee)$/)) {
                 utils.write('jobs/' + filename, gist.files[k].content);
-              } else/* if(filename.match(/(\w*)\.(coffee|html|scss)$/))*/ {
+              } else if(filename.match(/(\w*)\.(coffee|html|scss)$/)) {
                 utils.write('widgets/' + widgetName + '/' + filename, gist.files[k].content);
               }
             }
@@ -160,7 +175,7 @@ program.command('install <id>')
       });
     }
   });
-
+*/
 program.command('start')
   .description('Starts the server in style!')
   .option('-p, --port <port>', 'Listen port', 3030)
@@ -170,26 +185,26 @@ program.command('start')
   .action(function(options) {
     var env = process.env || {};
     env.PORT = options.port;
-    if (options['job_path']) {
-      env.JOB_PATH = options['job_path'];
+    if (options.job_path) {
+      env.JOB_PATH = options.job_path;
     }
-    if (options['view_engine']) {
-      env.VIEW_ENGINE = options['view_engine'];
+    if (options.view_engine) {
+      env.VIEW_ENGINE = options.view_engine;
     }
-    env.__daemon = !!options['daemon'];
+    env.__daemon = !!options.daemon;
     var spawn_opts = {
       cwd: process.cwd(),
       env: env,
       stdio: 'inherit',
     };
-    if (options['daemon']) {
+    if (options.daemon) {
       var outFile = fs.openSync('./out.log', 'a');
       var errFile = fs.openSync('./out.log', 'a');
       spawn_opts.stdio = ['ignore', outFile, errFile];
       spawn_opts.detached = true;
     }
     var child = spawn(process.execPath, ['server.js'], spawn_opts);
-    if (options['daemon']) {
+    if (options.daemon) {
       child.unref();
       process.exit(0);
     }
@@ -198,6 +213,7 @@ program.command('start')
     });
   });
 
+  /*
 program.command('job <job_name>')
   .description('Runs the specified job. Make sure to supply your auth token if you have one set.')
   .option('-a, --auth_token <token>', 'The auth_token to use')
@@ -228,7 +244,7 @@ program.command('job <job_name>')
     if (err) console.error('No job file found for "' + job_name + '". Supported job file types:', exts);
   });
 
-program.parse(process.argv);
+program.parse(process.argv);*/
 
 function createProject(name) {
   console.log('Creating "%s"', name);
